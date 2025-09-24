@@ -5,10 +5,10 @@
 </h1>
 
 > [!IMPORTANT]
-> 
+>
 > ![gaussians3d](https://github.com/user-attachments/assets/b0b33f6f-e45b-473e-8a7d-0a2d91abcb89)
 >
-> This is a fork of the original Rerun to demonstrate integration [wgpu-3dgs-viewer](https://github.com/LioQing/wgpu-3dgs-viewer) into Rerun.
+> This is a fork of the original Rerun to demonstrate integrating [wgpu-3dgs-viewer](https://github.com/LioQing/wgpu-3dgs-viewer) into Rerun.
 >
 > It has only been tested on Windows, to run the viewer, run the following cargo command:
 >
@@ -16,7 +16,7 @@
 > cargo run -p rerun-cli --features="native_viewer" --no-default-features --release
 > ```
 >
-> Then log your [`Gaussian`](https://docs.rs/wgpu-3dgs-core/0.4.0/wgpu_3dgs_core/struct.Gaussian.html)s using the following custom components:
+> Then log your [`Gaussian`](https://docs.rs/wgpu-3dgs-core/0.4.0/wgpu_3dgs_core/struct.Gaussian.html)s using the following script (requires [`wgpu-3dgs-core`](https://crates.io/crates/wgpu-3dgs-core) crates):
 >
 > ```rs
 > use wgpu_3dgs_core as gs;
@@ -63,17 +63,17 @@
 > }
 >
 > #[allow(dead_code)]
-> fn gaussians_to_ellipsoids(gaussians: &[gs::Gaussian]) -> rerun::Ellipsoids3D {
+> fn gaussians_to_ellipsoids(gaussians: &[gs::Gaussian], alpha: Option<u8>) -> rerun::Ellipsoids3D {
 >     rerun::Ellipsoids3D::from_half_sizes(gaussians.iter().map(|g| g.scale.to_rerun()))
 >         .with_centers(gaussians.iter().map(|g| g.pos.to_rerun()))
 >         .with_quaternions(gaussians.iter().map(|g| g.rot.to_rerun()))
->         .with_colors(gaussians.iter().map(|g| g.color.with_w(128).to_array()))
+>         .with_colors(gaussians.iter().map(|g| g.color.with_w(alpha.unwrap_or(g.color.w)).to_array()))
 > }
 >
 > #[allow(dead_code)]
-> fn gaussians_to_points(gaussians: &[gs::Gaussian]) -> rerun::Points3D {
+> fn gaussians_to_points(gaussians: &[gs::Gaussian], alpha: Option<u8>) -> rerun::Points3D {
 >     rerun::Points3D::new(gaussians.iter().map(|g| g.pos.to_rerun()))
->         .with_colors(gaussians.iter().map(|g| g.color.with_w(255).to_array()))
+>         .with_colors(gaussians.iter().map(|g| g.color.with_w(alpha.unwrap_or(g.color.w)).to_array()))
 > }
 >
 > fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,7 +82,7 @@
 >         std::process::exit(1);
 >     };
 >
->     let rec = rerun::RecordingStreamBuilder::new("rerun_example_minimal").spawn()?;
+>     let rec = rerun::RecordingStreamBuilder::new("gaussians3d_example").spawn()?;
 >
 >     let file = std::fs::File::open(model_path)?;
 >     let mut reader = std::io::BufReader::new(file);
@@ -91,10 +91,11 @@
 >     rec.log("Gaussians", &gaussians_to_archetype(&model.gaussians))?;
 >
 >     // You can also use other archetypes to visualize the gaussians differently:
->     // rec.log("GaussianEllipsoids", &gaussians_to_ellipsoids(&model.gaussians))?;
+>     rec.log("GaussianEllipsoids", &gaussians_to_ellipsoids(&model.gaussians, Some(255)))?;
 >
 >     Ok(())
 > }
+>
 > ```
 
 <h1 align="center">
