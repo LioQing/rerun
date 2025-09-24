@@ -33,6 +33,7 @@ uint32
 * [`Capsules3D`](../archetypes/capsules3d.md)
 * [`Cylinders3D`](../archetypes/cylinders3d.md)
 * [`Ellipsoids3D`](../archetypes/ellipsoids3d.md)
+* [`Gaussians3D`](../archetypes/gaussians3d.md)
 * [`GeoLineStrings`](../archetypes/geo_line_strings.md)
 * [`GeoPoints`](../archetypes/geo_points.md)
 * [`GraphNodes`](../archetypes/graph_nodes.md)

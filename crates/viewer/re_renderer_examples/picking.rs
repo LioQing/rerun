@@ -149,7 +149,7 @@ impl framework::Example for Picking {
                 },
                 pixels_per_point,
                 outline_config: None,
-                picking_config: Some(picking_config),
+                picking_config: None,
                 ..Default::default()
             },
         )?;

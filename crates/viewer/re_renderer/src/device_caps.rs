@@ -180,15 +180,21 @@ pub enum InsufficientDeviceCapabilities {
 pub struct DeviceCaps {
     pub tier: DeviceCapabilityTier,
 
-    /// Maximum texture dimension in pixels in both width and height.
+    // Commented out from the original implementation
+    //
+    // /// Maximum texture dimension in pixels in both width and height.
+    // ///
+    // /// Since this has a direct effect on the image sizes & screen resolution a user can use, we always pick the highest possible.
+    // pub max_texture_dimension2d: u32,
+    //
+    // /// Maximum buffer size in bytes.
+    // ///
+    // /// Since this has a direct effect on how much data a user can wrangle on the gpu, we always pick the highest possible.
+    // pub max_buffer_size: u64,
+    /// Maximum limits for the adapter.
     ///
-    /// Since this has a direct effect on the image sizes & screen resolution a user can use, we always pick the highest possible.
-    pub max_texture_dimension2d: u32,
-
-    /// Maximum buffer size in bytes.
-    ///
-    /// Since this has a direct effect on how much data a user can wrangle on the gpu, we always pick the highest possible.
-    pub max_buffer_size: u64,
+    /// This is directly taken from [`wgpu::Adapter::limits`].
+    pub limits: wgpu::Limits,
 
     /// Wgpu backend type.
     ///
@@ -239,8 +245,7 @@ impl DeviceCaps {
 
         Self {
             tier,
-            max_texture_dimension2d: limits.max_texture_dimension_2d,
-            max_buffer_size: limits.max_buffer_size,
+            limits,
             backend_type,
         }
     }
@@ -313,11 +318,7 @@ impl DeviceCaps {
 
     /// Wgpu limits required by the given device tier.
     pub fn limits(&self) -> wgpu::Limits {
-        wgpu::Limits {
-            max_texture_dimension_2d: self.max_texture_dimension2d,
-            max_buffer_size: self.max_buffer_size,
-            ..wgpu::Limits::downlevel_webgl2_defaults()
-        }
+        self.limits.clone()
     }
 
     /// Device descriptor compatible with the given device tier.

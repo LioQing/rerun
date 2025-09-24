@@ -412,6 +412,7 @@ wgpu = { version = "26.0.1", default-features = false, features = [
   # Other:
   "fragile-send-sync-non-atomic-wasm",
 ] }
+wgpu-3dgs-viewer = { path = "submodules/wgpu-3dgs-viewer" }
 xshell = "0.2.7"
 
 # ---------------------------------------------------------------------------------

@@ -238,7 +238,9 @@ pub fn customize_eframe_and_setup_renderer(
             render_state.device.clone(),
             render_state.queue.clone(),
             render_state.target_format,
-            re_renderer::RenderConfig::best_for_device_caps,
+            |_| re_renderer::RenderConfig {
+                msaa_mode: re_renderer::MsaaMode::Off, // TODO: make `wgpu-3dgs-viewer` support MSAA
+            },
         )?;
         paint_callback_resources.insert(render_ctx);
     }

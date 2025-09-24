@@ -16,6 +16,7 @@ from .cylinders3d import Cylinders3D
 from .depth_image import DepthImage
 from .ellipsoids3d import Ellipsoids3D
 from .encoded_image import EncodedImage
+from .gaussians3d import Gaussians3D
 from .geo_line_strings import GeoLineStrings
 from .geo_points import GeoPoints
 from .graph_edges import GraphEdges
@@ -60,6 +61,7 @@ __all__ = [
     "DepthImage",
     "Ellipsoids3D",
     "EncodedImage",
+    "Gaussians3D",
     "GeoLineStrings",
     "GeoPoints",
     "GraphEdges",

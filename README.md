@@ -4,6 +4,97 @@
   </a>
 </h1>
 
+> [!IMPORTANT]
+>
+> This is a fork of the original Rerun to demonstrate integration [wgpu-3dgs-viewer](https://github.com/LioQing/wgpu-3dgs-viewer) into Rerun.
+>
+> It has only been tested on Windows, to run the viewer, run the following cargo command:
+>
+> ```sh
+> cargo run -p rerun-cli --features="native_viewer" --no-default-features --release
+> ```
+>
+> Then log your [`Gaussian`](https://docs.rs/wgpu-3dgs-core/0.4.0/wgpu_3dgs_core/struct.Gaussian.html)s using the following custom components:
+>
+> ```rs
+> use wgpu_3dgs_core as gs;
+>
+> trait ToRerun {
+>     type RerunType;
+>     fn to_rerun(&self) -> Self::RerunType;
+> }
+>
+> impl ToRerun for gs::glam::Vec3 {
+>     type RerunType = rerun::external::glam::Vec3;
+>     fn to_rerun(&self) -> Self::RerunType {
+>         rerun::external::glam::Vec3::new(self.x, self.y, self.z)
+>     }
+> }
+>
+> impl ToRerun for gs::glam::Quat {
+>     type RerunType = rerun::external::glam::Quat;
+>     fn to_rerun(&self) -> Self::RerunType {
+>         rerun::external::glam::Quat::from_xyzw(self.x, self.y, self.z, self.w)
+>     }
+> }
+>
+> #[allow(dead_code)]
+> fn gaussians_to_archetype_without_sh(gaussians: &[gs::Gaussian]) -> rerun::Gaussians3D {
+>     rerun::Gaussians3D::update_fields()
+>         .with_poss(gaussians.iter().map(|g| g.pos.to_rerun()))
+>         .with_scales(gaussians.iter().map(|g| g.scale.to_rerun()))
+>         .with_rots(gaussians.iter().map(|g| g.rot.to_rerun()))
+>         .with_colors(gaussians.iter().map(|g| g.color.to_array()))
+> }
+>
+> #[allow(dead_code)]
+> fn gaussians_to_archetype(gaussians: &[gs::Gaussian]) -> rerun::Gaussians3D {
+>     gaussians_to_archetype_without_sh(gaussians).with_sh(gaussians.iter().map(|g| {
+>         rerun::external::re_types::datatypes::Sh(
+>             g.sh.iter()
+>                 .flat_map(gs::glam::Vec3::to_array)
+>                 .collect::<Vec<_>>()
+>                 .try_into()
+>                 .unwrap(),
+>         )
+>     }))
+> }
+>
+> #[allow(dead_code)]
+> fn gaussians_to_ellipsoids(gaussians: &[gs::Gaussian]) -> rerun::Ellipsoids3D {
+>     rerun::Ellipsoids3D::from_half_sizes(gaussians.iter().map(|g| g.scale.to_rerun()))
+>         .with_centers(gaussians.iter().map(|g| g.pos.to_rerun()))
+>         .with_quaternions(gaussians.iter().map(|g| g.rot.to_rerun()))
+>         .with_colors(gaussians.iter().map(|g| g.color.with_w(128).to_array()))
+> }
+>
+> #[allow(dead_code)]
+> fn gaussians_to_points(gaussians: &[gs::Gaussian]) -> rerun::Points3D {
+>     rerun::Points3D::new(gaussians.iter().map(|g| g.pos.to_rerun()))
+>         .with_colors(gaussians.iter().map(|g| g.color.with_w(255).to_array()))
+> }
+>
+> fn main() -> Result<(), Box<dyn std::error::Error>> {
+>     let Some(model_path) = std::env::args().nth(1) else {
+>         eprintln!("Usage: learn-rerun-server <path-to-3d-model>");
+>         std::process::exit(1);
+>     };
+>
+>     let rec = rerun::RecordingStreamBuilder::new("rerun_example_minimal").spawn()?;
+>
+>     let file = std::fs::File::open(model_path)?;
+>     let mut reader = std::io::BufReader::new(file);
+>     let model = gs::Gaussians::read_ply(&mut reader)?;
+>
+>     rec.log("Gaussians", &gaussians_to_ellipsoids(&model.gaussians))?;
+>
+>     // You can also use other archetypes to visualize the gaussians differently:
+>     // rec.log("GaussianEllipsoids", &gaussians_to_ellipsoids(&model.gaussians))?;
+>
+>     Ok(())
+> }
+> ```
+
 <h1 align="center">
   <a href="https://pypi.org/project/rerun-sdk/">                        <img alt="PyPi"           src="https://img.shields.io/pypi/v/rerun-sdk.svg">                              </a>
   <a href="https://crates.io/crates/rerun">                             <img alt="crates.io"      src="https://img.shields.io/crates/v/rerun.svg">                                </a>
@@ -13,6 +104,7 @@
 </h1>
 
 # Time-aware multimodal data stack and visualizations
+
 Rerun is building the multimodal data stack to model, ingest, store, query and view robotics-style data.
 It's used in areas like robotics, spatial and embodied AI, generative media, industrial processing, simulation, security, and health.
 
@@ -23,10 +115,11 @@ You can also query the logged data through [our dataframe API](https://rerun.io/
 
 [Get started](#getting-started) in minutes – no account needed.
 
-* [Run the Rerun Viewer in your browser](https://www.rerun.io/viewer)
-* [Read about what Rerun is and who it is for](https://www.rerun.io/docs/getting-started/what-is-rerun)
+-   [Run the Rerun Viewer in your browser](https://www.rerun.io/viewer)
+-   [Read about what Rerun is and who it is for](https://www.rerun.io/docs/getting-started/what-is-rerun)
 
 ### A short taste
+
 ```py
 import rerun as rr  # pip install rerun-sdk
 
@@ -55,11 +148,13 @@ rr.log("path/to/points", rr.Points3D(positions, colors=colors))
 </p>
 
 ## Getting started
-* [**C++**](https://www.rerun.io/docs/getting-started/quick-start/cpp)
-* [**Python**](https://www.rerun.io/docs/getting-started/quick-start/python): `pip install rerun-sdk` or on [`conda`](https://github.com/conda-forge/rerun-sdk-feedstock)
-* [**Rust**](https://www.rerun.io/docs/getting-started/quick-start/rust): `cargo add rerun`
+
+-   [**C++**](https://www.rerun.io/docs/getting-started/quick-start/cpp)
+-   [**Python**](https://www.rerun.io/docs/getting-started/quick-start/python): `pip install rerun-sdk` or on [`conda`](https://github.com/conda-forge/rerun-sdk-feedstock)
+-   [**Rust**](https://www.rerun.io/docs/getting-started/quick-start/rust): `cargo add rerun`
 
 ### Installing the Rerun Viewer binary
+
 To stream log data over the network or load our `.rrd` data files you also need the `rerun` binary.
 It can be installed with `pip install rerun-sdk` or with `cargo install rerun-cli --locked --features nasm` (see note below).
 Note that only the Python SDK comes bundled with the Viewer whereas C++ & Rust always rely on a separate install.
@@ -69,31 +164,31 @@ Alternatively, you may skip enabling this feature, but this may result in inferi
 
 You should now be able to run `rerun --help` in any terminal.
 
-
 ### Documentation
-- 📚 [High-level docs](http://rerun.io/docs)
-- ⏃ [Loggable Types](https://www.rerun.io/docs/reference/types)
-- ⚙️ [Examples](http://rerun.io/examples)
-- 📖 [Code snippets](./docs/snippets/INDEX.md)
-- 🌊 [C++ API docs](https://ref.rerun.io/docs/cpp)
-- 🐍 [Python API docs](https://ref.rerun.io/docs/python)
-- 🦀 [Rust API docs](https://docs.rs/rerun/)
-- ⁉️ [Troubleshooting](https://www.rerun.io/docs/getting-started/troubleshooting)
 
+-   📚 [High-level docs](http://rerun.io/docs)
+-   ⏃ [Loggable Types](https://www.rerun.io/docs/reference/types)
+-   ⚙️ [Examples](http://rerun.io/examples)
+-   📖 [Code snippets](./docs/snippets/INDEX.md)
+-   🌊 [C++ API docs](https://ref.rerun.io/docs/cpp)
+-   🐍 [Python API docs](https://ref.rerun.io/docs/python)
+-   🦀 [Rust API docs](https://docs.rs/rerun/)
+-   ⁉️ [Troubleshooting](https://www.rerun.io/docs/getting-started/troubleshooting)
 
 ## Status
+
 We are in active development.
 There are many features we want to add, and the API is still evolving.
 _Expect breaking changes!_
 
 Some shortcomings:
-* [The viewer slows down when there are too many entities](https://github.com/rerun-io/rerun/issues/7115)
-* [We don't support transparency yet](https://github.com/rerun-io/rerun/issues/1611)
-* The data you want to visualize must fit in RAM
-  - See <https://www.rerun.io/docs/howto/limit-ram> for how to bound memory use.
-  - We plan on having a disk-based data store some time in the future.
-* [Multi-million point clouds can be slow](https://github.com/rerun-io/rerun/issues/1136)
 
+-   [The viewer slows down when there are too many entities](https://github.com/rerun-io/rerun/issues/7115)
+-   [We don't support transparency yet](https://github.com/rerun-io/rerun/issues/1611)
+-   The data you want to visualize must fit in RAM
+    -   See <https://www.rerun.io/docs/howto/limit-ram> for how to bound memory use.
+    -   We plan on having a disk-based data store some time in the future.
+-   [Multi-million point clouds can be slow](https://github.com/rerun-io/rerun/issues/1136)
 
 ## What is Rerun for?
 
@@ -102,18 +197,19 @@ It is used in many industries, including robotics, simulation, computer vision,
 or anything that involves a lot of sensors or other signals that evolve over time.
 
 ### Example use case
+
 Say you're building a vacuum cleaning robot and it keeps running into walls. Why is it doing that? You need some tool to debug it, but a normal debugger isn't gonna be helpful. Similarly, just logging text won't be very helpful either. The robot may log "Going through doorway" but that won't explain why it thinks the wall is a door.
 
 What you need is a visual and temporal debugger, that can log all the different representations of the world the robots holds in its little head, such as:
 
-* RGB camera feed
-* depth images
-* lidar scan
-* segmentation image (how the robot interprets what it sees)
-* its 3D map of the apartment
-* all the objects the robot has detected (or thinks it has detected), as 3D shapes in the 3D map
-* its confidence in its prediction
-* etc
+-   RGB camera feed
+-   depth images
+-   lidar scan
+-   segmentation image (how the robot interprets what it sees)
+-   its 3D map of the apartment
+-   all the objects the robot has detected (or thinks it has detected), as 3D shapes in the 3D map
+-   its confidence in its prediction
+-   etc
 
 You also want to see how all these streams of data evolve over time so you can go back and pinpoint exactly what went wrong, when and why.
 
@@ -127,8 +223,8 @@ Rerun provides query APIs to make it easy to extract clean datasets from your re
 
 Of course, Rerun is useful for much more than just robots. Any time you have any form of sensors, or 2D or 3D state evolving over time, Rerun is a great tool.
 
-
 ## Business model
+
 Rerun uses an open-core model. Everything in this repository will stay open source and free (both as in beer and as in freedom).
 
 We are also building a commercial data platform.
@@ -165,14 +261,14 @@ This citation format helps ensure that Rerun's development team receives appropr
 facilitates the tool's discovery by other researchers.
 
 # Development
-* [`ARCHITECTURE.md`](ARCHITECTURE.md)
-* [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
-* [`CODE_STYLE.md`](CODE_STYLE.md)
-* [`CONTRIBUTING.md`](CONTRIBUTING.md)
-* [`BUILD.md`](BUILD.md)
-* [`rerun_py/README.md`](rerun_py/README.md) - instructions for Python SDK
-* [`rerun_cpp/README.md`](rerun_cpp/README.md) - instructions for C++ SDK
 
+-   [`ARCHITECTURE.md`](ARCHITECTURE.md)
+-   [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+-   [`CODE_STYLE.md`](CODE_STYLE.md)
+-   [`CONTRIBUTING.md`](CONTRIBUTING.md)
+-   [`BUILD.md`](BUILD.md)
+-   [`rerun_py/README.md`](rerun_py/README.md) - instructions for Python SDK
+-   [`rerun_cpp/README.md`](rerun_cpp/README.md) - instructions for C++ SDK
 
 ## Installing a pre-release Python SDK
 

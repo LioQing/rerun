@@ -73,6 +73,7 @@ scale3d.hpp linguist-generated=true
 schema_id.hpp linguist-generated=true
 series_visible.hpp linguist-generated=true
 show_labels.hpp linguist-generated=true
+spherical_harmonics.hpp linguist-generated=true
 stroke_width.hpp linguist-generated=true
 tensor_data.hpp linguist-generated=true
 tensor_dimension_index_selection.hpp linguist-generated=true

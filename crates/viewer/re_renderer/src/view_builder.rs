@@ -37,20 +37,22 @@ pub struct ViewBuilder {
     picking_processor: Option<PickingLayerProcessor>,
 }
 
-struct ViewTargetSetup {
-    name: DebugLabel,
+pub struct ViewTargetSetup {
+    pub name: DebugLabel,
 
-    camera_position: glam::Vec3A,
+    pub camera_position: glam::Vec3A,
+    pub view_from_world: glam::Mat4,
+    pub projection_from_view: glam::Mat4,
 
-    bind_group_0: GpuBindGroup,
-    main_target_msaa: GpuTexture,
+    pub bind_group_0: GpuBindGroup,
+    pub main_target_msaa: GpuTexture,
 
     /// The main target with MSAA resolved.
     /// If MSAA is disabled, this is the same as `main_target_msaa`.
-    main_target_resolved: GpuTexture,
-    depth_buffer: GpuTexture,
+    pub main_target_resolved: GpuTexture,
+    pub depth_buffer: GpuTexture,
 
-    resolution_in_pixel: [u32; 2],
+    pub resolution_in_pixel: [u32; 2],
 }
 
 /// [`ViewBuilder`] that can be shared between threads.
@@ -608,6 +610,8 @@ impl ViewBuilder {
         let setup = ViewTargetSetup {
             name: config.name,
             camera_position: camera_position.into(),
+            view_from_world,
+            projection_from_view,
             bind_group_0,
             main_target_msaa,
             main_target_resolved,
@@ -759,6 +763,24 @@ impl ViewBuilder {
             ] {
                 self.draw_phase_manager
                     .draw(&renderers, &pipelines, phase, &mut pass);
+            }
+        }
+
+        {
+            re_tracing::profile_scope!("cleanup drawables");
+            for phase in [
+                DrawPhase::Opaque,
+                DrawPhase::Background,
+                DrawPhase::Transparent,
+            ] {
+                self.draw_phase_manager.cleanup(
+                    ctx,
+                    setup,
+                    &renderers,
+                    &pipelines,
+                    phase,
+                    &mut encoder,
+                );
             }
         }
 

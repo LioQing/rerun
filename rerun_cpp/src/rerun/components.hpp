@@ -62,6 +62,7 @@
 #include "components/schema_id.hpp"
 #include "components/series_visible.hpp"
 #include "components/show_labels.hpp"
+#include "components/spherical_harmonics.hpp"
 #include "components/stroke_width.hpp"
 #include "components/tensor_data.hpp"
 #include "components/tensor_dimension_index_selection.hpp"

@@ -1,6 +1,7 @@
 mod compositor;
 mod debug_overlay;
 mod depth_cloud;
+mod gaussians3d;
 mod generic_skybox;
 mod lines;
 mod mesh_renderer;
@@ -11,6 +12,7 @@ mod world_grid;
 
 pub use self::depth_cloud::{DepthCloud, DepthCloudDrawData, DepthCloudRenderer, DepthClouds};
 pub use debug_overlay::{DebugOverlayDrawData, DebugOverlayError, DebugOverlayRenderer};
+pub use gaussians3d::{Gaussians3DDrawData, Gaussians3DRenderer};
 pub use generic_skybox::{GenericSkyboxDrawData, GenericSkyboxType};
 pub use lines::{LineBatchInfo, LineDrawData, LineDrawDataError, LineStripFlags};
 pub use mesh_renderer::{GpuMeshInstance, MeshDrawData};
@@ -35,7 +37,7 @@ pub(crate) use mesh_renderer::MeshRenderer;
 // ------------
 
 use crate::{
-    Drawable, DrawableCollector, QueueableDrawData,
+    Drawable, DrawableCollector, QueueableDrawData, ViewTargetSetup,
     context::RenderContext,
     draw_phases::DrawPhase,
     include_shader_module,
@@ -157,6 +159,34 @@ pub trait Renderer {
         pass: &mut wgpu::RenderPass<'_>,
         draw_instructions: &[DrawInstruction<'_, Self::RendererDrawData>],
     ) -> Result<(), DrawError>;
+
+    /// Called once per frame before any calls to [`Renderer::draw`].
+    ///
+    /// This is useful for preparing any GPU resources that might be needed during the actual draw calls
+    /// such as preprocessing draw data with compute shaders.
+    fn cleanup(
+        &self,
+        _ctx: &RenderContext,
+        _setup: &ViewTargetSetup,
+        _gpu_resources: &GpuRenderPipelinePoolAccessor<'_>,
+        _encoder: &mut wgpu::CommandEncoder,
+        _draw_instructions: &[DrawInstruction<'_, Self::RendererDrawData>],
+    ) -> Result<(), DrawError> {
+        Ok(())
+    }
+
+    /// Downcasts the type erased draw instructions to the concrete type expected by this renderer.
+    fn downcast_draw_instructions<'a>(
+        type_erased_draw_instructions: &'a [DrawInstruction<'_, QueueableDrawData>],
+    ) -> Vec<DrawInstruction<'a, Self::RendererDrawData>> {
+        type_erased_draw_instructions
+            .iter()
+            .map(|type_erased_draw_instruction| DrawInstruction {
+                draw_data: type_erased_draw_instruction.draw_data.expect_downcast(),
+                drawables: type_erased_draw_instruction.drawables,
+            })
+            .collect()
+    }
 }
 
 /// Extension trait for [`Renderer`] that allows running draw instructions with type erased draw data.
@@ -168,6 +198,17 @@ pub(crate) trait RendererExt: Send + Sync {
         pass: &mut wgpu::RenderPass<'_>,
         type_erased_draw_instructions: &[DrawInstruction<'_, QueueableDrawData>],
     ) -> Result<(), DrawError>;
+
+    fn cleanup_draw_instructions(
+        &self,
+        _ctx: &RenderContext,
+        _setup: &ViewTargetSetup,
+        _gpu_resources: &GpuRenderPipelinePoolAccessor<'_>,
+        _encoder: &mut wgpu::CommandEncoder,
+        _type_erased_draw_instructions: &[DrawInstruction<'_, QueueableDrawData>],
+    ) -> Result<(), DrawError> {
+        Ok(())
+    }
 
     /// Name of the renderer, used for debugging & error reporting.
     fn name(&self) -> &'static str;
@@ -181,16 +222,20 @@ impl<R: Renderer + Send + Sync> RendererExt for R {
         pass: &mut wgpu::RenderPass<'_>,
         type_erased_draw_instructions: &[DrawInstruction<'_, QueueableDrawData>],
     ) -> Result<(), DrawError> {
-        let draw_instructions: Vec<DrawInstruction<'_, R::RendererDrawData>> =
-            type_erased_draw_instructions
-                .iter()
-                .map(|type_erased_draw_instruction| DrawInstruction {
-                    draw_data: type_erased_draw_instruction.draw_data.expect_downcast(),
-                    drawables: type_erased_draw_instruction.drawables,
-                })
-                .collect();
-
+        let draw_instructions = R::downcast_draw_instructions(type_erased_draw_instructions);
         self.draw(gpu_resources, phase, pass, &draw_instructions)
+    }
+
+    fn cleanup_draw_instructions(
+        &self,
+        ctx: &RenderContext,
+        setup: &ViewTargetSetup,
+        gpu_resources: &GpuRenderPipelinePoolAccessor<'_>,
+        encoder: &mut wgpu::CommandEncoder,
+        type_erased_draw_instructions: &[DrawInstruction<'_, QueueableDrawData>],
+    ) -> Result<(), DrawError> {
+        let draw_instructions = R::downcast_draw_instructions(type_erased_draw_instructions);
+        self.cleanup(ctx, setup, gpu_resources, encoder, &draw_instructions)
     }
 
     fn name(&self) -> &'static str {

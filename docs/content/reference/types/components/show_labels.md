@@ -33,6 +33,7 @@ boolean
 * [`Capsules3D`](../archetypes/capsules3d.md)
 * [`Cylinders3D`](../archetypes/cylinders3d.md)
 * [`Ellipsoids3D`](../archetypes/ellipsoids3d.md)
+* [`Gaussians3D`](../archetypes/gaussians3d.md)
 * [`GraphNodes`](../archetypes/graph_nodes.md)
 * [`LineStrips2D`](../archetypes/line_strips2d.md)
 * [`LineStrips3D`](../archetypes/line_strips3d.md)

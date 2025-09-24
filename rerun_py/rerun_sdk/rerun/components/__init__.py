@@ -82,6 +82,7 @@ from .scale3d import Scale3D, Scale3DBatch
 from .schema_id import SchemaId, SchemaIdBatch
 from .series_visible import SeriesVisible, SeriesVisibleBatch
 from .show_labels import ShowLabels, ShowLabelsBatch
+from .spherical_harmonics import SphericalHarmonics, SphericalHarmonicsBatch
 from .stroke_width import StrokeWidth, StrokeWidthBatch
 from .tensor_data import TensorData, TensorDataBatch
 from .tensor_dimension_index_selection import TensorDimensionIndexSelection, TensorDimensionIndexSelectionBatch
@@ -254,6 +255,8 @@ __all__ = [
     "SeriesVisibleBatch",
     "ShowLabels",
     "ShowLabelsBatch",
+    "SphericalHarmonics",
+    "SphericalHarmonicsBatch",
     "StrokeWidth",
     "StrokeWidthBatch",
     "TensorData",

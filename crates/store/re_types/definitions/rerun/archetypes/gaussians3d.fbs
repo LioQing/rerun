@@ -1,0 +1,45 @@
+namespace rerun.archetypes;
+
+// ---
+
+/// 3D Gaussians.
+table Gaussians3D (
+  "attr.cpp.no_field_ctors",
+  "attr.docs.category": "Spatial 3D",
+  "attr.docs.view_types": "Spatial3DView, Spatial2DView: if logged above active projection",
+  "attr.rerun.state": "stable",
+  "attr.rust.derive": "PartialEq"
+) {
+  // --- Required ---
+
+  /// The scales (standard deviation) along the three axes.
+  scales: [rerun.components.HalfSize3D] ("attr.rerun.component_required", order: 1000);
+
+  /// The center position (mean) of the Gaussians.
+  poss: [rerun.components.PoseTranslation3D] ("attr.rerun.component_required", order: 2000);
+
+  /// The rotation for the Gaussians via quaternion.
+  rots: [rerun.components.PoseRotationQuat] ("attr.rerun.component_required", order: 2200);
+
+  /// The colors for the Gaussians.
+  colors: [rerun.components.Color] ("attr.rerun.component_required", order: 2300);
+
+  // --- Optional ---
+
+  /// Optional spherical harmonics of the Gaussians, up to degree 3.
+  sh: [rerun.components.SphericalHarmonics]  ("attr.rerun.component_optional", nullable, order: 3000);
+
+  /// Optional text labels for the Gaussians.
+  labels: [rerun.components.Text] ("attr.rerun.component_optional", nullable, order: 3200);
+
+  /// Whether the text labels should be shown.
+  ///
+  /// If not set, labels will automatically appear when there is exactly one label for this entity
+  /// or the number of instances on this entity is under a certain threshold.
+  show_labels: rerun.components.ShowLabels ("attr.rerun.component_optional", nullable, order: 3250);
+
+  /// Optional class ID for the Gaussians.
+  ///
+  /// The class ID provides colors and labels if not specified explicitly.
+  class_ids: [rerun.components.ClassId] ("attr.rerun.component_optional", nullable, order: 3300);
+}

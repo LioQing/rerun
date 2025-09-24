@@ -26,4 +26,5 @@ FixedSizeList<3, float32>
 * [`Capsules3D`](../archetypes/capsules3d.md)
 * [`Cylinders3D`](../archetypes/cylinders3d.md)
 * [`Ellipsoids3D`](../archetypes/ellipsoids3d.md)
+* [`Gaussians3D`](../archetypes/gaussians3d.md)
 * [`InstancePoses3D`](../archetypes/instance_poses3d.md)

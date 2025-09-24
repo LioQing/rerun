@@ -1,0 +1,17 @@
+namespace rerun.datatypes;
+
+// ---
+
+/// A spherical harmonics.
+///
+/// This does not include 0-th degree. It supports up to 3 degrees.
+struct Sh (
+  "attr.arrow.transparent",
+  "attr.python.aliases": "npt.NDArray[Any], npt.ArrayLike, Sequence[float]",
+  "attr.python.array_aliases": "npt.NDArray[Any], npt.ArrayLike, Sequence[Sequence[float]], Sequence[float]",
+  "attr.rust.derive": "Copy, PartialEq, bytemuck::Pod, bytemuck::Zeroable",
+  "attr.rust.tuple_struct",
+  "attr.rust.repr": "C"
+) {
+  sh: [float: 45] (order: 100);
+}

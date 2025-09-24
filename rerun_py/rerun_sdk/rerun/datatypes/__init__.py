@@ -38,6 +38,7 @@ from .rotation_axis_angle import (
     RotationAxisAngleBatch,
     RotationAxisAngleLike,
 )
+from .sh import Sh, ShArrayLike, ShBatch, ShLike
 from .tensor_buffer import TensorBuffer, TensorBufferArrayLike, TensorBufferBatch, TensorBufferLike
 from .tensor_data import TensorData, TensorDataArrayLike, TensorDataBatch, TensorDataLike
 from .tensor_dimension_index_selection import (
@@ -181,6 +182,10 @@ __all__ = [
     "RotationAxisAngleArrayLike",
     "RotationAxisAngleBatch",
     "RotationAxisAngleLike",
+    "Sh",
+    "ShArrayLike",
+    "ShBatch",
+    "ShLike",
     "TensorBuffer",
     "TensorBufferArrayLike",
     "TensorBufferBatch",

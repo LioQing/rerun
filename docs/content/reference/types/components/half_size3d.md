@@ -29,3 +29,4 @@ FixedSizeList<3, float32>
 
 * [`Boxes3D`](../archetypes/boxes3d.md)
 * [`Ellipsoids3D`](../archetypes/ellipsoids3d.md)
+* [`Gaussians3D`](../archetypes/gaussians3d.md)

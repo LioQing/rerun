@@ -67,6 +67,7 @@ smallvec = { workspace = true, features = ["serde"] }
 thiserror.workspace = true
 vec1 = { workspace = true, features = ["smallvec-v1"] }
 web-time.workspace = true
+wgpu-3dgs-viewer.workspace = true
 
 
 [dev-dependencies]

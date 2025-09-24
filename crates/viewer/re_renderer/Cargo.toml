@@ -83,6 +83,7 @@ thiserror.workspace = true
 type-map.workspace = true
 web-time.workspace = true
 wgpu.workspace = true
+wgpu-3dgs-viewer.workspace = true
 
 # optional
 gltf = { workspace = true, optional = true }

@@ -73,6 +73,7 @@ on [Entities and Components](../../concepts/entity-component.md).
 * [`SchemaId`](components/schema_id.md): A 16-bit unique identifier for a schema within the MCAP file.
 * [`SeriesVisible`](components/series_visible.md): Like [`components.Visible`](https://rerun.io/docs/reference/types/components/visible), but for time series.
 * [`ShowLabels`](components/show_labels.md): Whether the entity's [`components.Text`](https://rerun.io/docs/reference/types/components/text) label is shown.
+* [`SphericalHarmonics`](components/spherical_harmonics.md): A spherical harmonics up to degree 3.
 * [`StrokeWidth`](components/stroke_width.md): The width of a stroke specified in UI points.
 * [`TensorData`](components/tensor_data.md): An N-dimensional array of numbers.
 * [`TensorDimensionIndexSelection`](components/tensor_dimension_index_selection.md): Specifies a concrete index on a tensor dimension.

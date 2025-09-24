@@ -5,6 +5,7 @@ use enumset::EnumSet;
 
 use crate::{
     GpuRenderPipelinePoolAccessor, QueueableDrawData, RenderContext, RendererTypeId,
+    ViewTargetSetup,
     context::Renderers,
     renderer::{
         DrawDataDrawable, DrawDataDrawablePayload, DrawInstruction, DrawableCollectionViewInfo,
@@ -228,6 +229,66 @@ impl DrawPhaseManager {
 
             let draw_result =
                 renderer.run_draw_instructions(gpu_resources, phase, pass, &draw_instructions);
+
+            if let Err(err) = draw_result {
+                re_log::error!("Error drawing with {}: {err}", renderer.name());
+            }
+        }
+    }
+
+    /// Prepare the drawables for.
+    pub fn cleanup(
+        &self,
+        ctx: &RenderContext,
+        setup: &ViewTargetSetup,
+        renderers: &Renderers,
+        gpu_resources: &GpuRenderPipelinePoolAccessor<'_>,
+        phase: DrawPhase,
+        encoder: &mut wgpu::CommandEncoder,
+    ) {
+        re_tracing::profile_function!(format!("prepare({phase:?})"));
+
+        debug_assert!(
+            self.active_phases.contains(phase),
+            "Phase {phase:?} not active",
+        );
+
+        let renderer_chunked_drawables =
+            self.drawables[phase as usize].chunk_by(|a, b| a.renderer_key() == b.renderer_key());
+
+        // Re-use draw instruction array so we don't have to allocate all the time.
+        let mut draw_instructions = Vec::with_capacity(64.min(self.draw_data.len()));
+
+        for drawable_prepare_with_same_renderer in renderer_chunked_drawables {
+            let first = &drawable_prepare_with_same_renderer[0]; // `std::slice::chunk_by` should always have at least one element per chunk.
+            let renderer_key = first.renderer_key();
+
+            // One instruction per draw data.
+            draw_instructions.clear();
+            draw_instructions.extend(
+                drawable_prepare_with_same_renderer
+                    .chunk_by(|a, b| a.draw_data_index() == b.draw_data_index())
+                    .map(|drawables| DrawInstruction {
+                        draw_data: &self.draw_data[drawables[0].draw_data_index() as usize],
+                        drawables,
+                    }),
+            );
+
+            let Some(renderer) = renderers.get_by_key(renderer_key) else {
+                debug_assert!(
+                    false,
+                    "Previously acquired renderer not found by key. Since renderers are never deleted this should be impossible."
+                );
+                continue;
+            };
+
+            let draw_result = renderer.cleanup_draw_instructions(
+                ctx,
+                setup,
+                gpu_resources,
+                encoder,
+                &draw_instructions,
+            );
 
             if let Err(err) = draw_result {
                 re_log::error!("Error drawing with {}: {err}", renderer.name());

@@ -1,0 +1,13 @@
+namespace rerun.components;
+
+// ---
+
+/// A spherical harmonics up to degree 3.
+struct SphericalHarmonics (
+  "attr.python.aliases": "npt.NDArray[np.float32], Sequence[float]",
+  "attr.python.array_aliases": "npt.NDArray[np.float32]",
+  "attr.rust.derive": "Default, Copy, PartialEq, bytemuck::Pod, bytemuck::Zeroable",
+  "attr.rust.repr": "transparent"
+) {
+  sh: rerun.datatypes.Sh (order: 100);
+}

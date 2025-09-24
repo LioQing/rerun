@@ -62,6 +62,7 @@ scale3d.py linguist-generated=true
 schema_id.py linguist-generated=true
 series_visible.py linguist-generated=true
 show_labels.py linguist-generated=true
+spherical_harmonics.py linguist-generated=true
 stroke_width.py linguist-generated=true
 tensor_data.py linguist-generated=true
 tensor_dimension_index_selection.py linguist-generated=true
