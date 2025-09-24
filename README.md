@@ -5,6 +5,8 @@
 </h1>
 
 > [!IMPORTANT]
+> 
+> ![gaussians3d](https://github.com/user-attachments/assets/b0b33f6f-e45b-473e-8a7d-0a2d91abcb89)
 >
 > This is a fork of the original Rerun to demonstrate integration [wgpu-3dgs-viewer](https://github.com/LioQing/wgpu-3dgs-viewer) into Rerun.
 >
@@ -86,7 +88,7 @@
 >     let mut reader = std::io::BufReader::new(file);
 >     let model = gs::Gaussians::read_ply(&mut reader)?;
 >
->     rec.log("Gaussians", &gaussians_to_ellipsoids(&model.gaussians))?;
+>     rec.log("Gaussians", &gaussians_to_archetype(&model.gaussians))?;
 >
 >     // You can also use other archetypes to visualize the gaussians differently:
 >     // rec.log("GaussianEllipsoids", &gaussians_to_ellipsoids(&model.gaussians))?;
