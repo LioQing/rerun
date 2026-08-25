@@ -438,6 +438,22 @@ impl SpatialView3D {
         let painter = ui.painter().with_clip_rect(ui.max_rect());
         painter.extend(label_shapes);
 
+        // Interaction feature
+        {
+            let state = re_interact::state();
+
+            if let Err(e) = state.update(&ctx.app_options().interact_options) {
+                re_log::error!("Failed to update interaction state: {e}");
+            }
+
+            state.send(re_interact::InteractData {
+                path: query.space_origin.to_vec(),
+                eye_rotation: eye.world_from_rub_view.rotation,
+                eye_position: eye.world_from_rub_view.translation.to_vec3(),
+                eye_fov: eye.fov_y,
+            });
+        }
+
         Ok(view_ui_output)
     }
 

@@ -6,7 +6,7 @@ use re_log_types::{Timestamp, TimestampFormat};
 use re_memory::MemoryLimit;
 use re_ui::syntax_highlighting::SyntaxHighlightedBuilder;
 use re_ui::{DesignTokens, UiExt as _};
-use re_viewer_context::{AppOptions, ExperimentalAppOptions, VideoOptions};
+use re_viewer_context::{AppOptions, ExperimentalAppOptions, InteractOptions, VideoOptions};
 
 pub fn settings_screen_ui(ui: &mut egui::Ui, app_options: &mut AppOptions, keep_open: &mut bool) {
     egui::Frame {
@@ -92,6 +92,7 @@ fn settings_screen_ui_impl(ui: &mut egui::Ui, app_options: &mut AppOptions, keep
         mapbox_access_token,
         memory_limit,
         max_fetch_stage,
+        interact_options,
 
         #[cfg(not(target_arch = "wasm32"))]
             cache_directory: _, // not yet exposed
@@ -166,6 +167,10 @@ fn settings_screen_ui_impl(ui: &mut egui::Ui, app_options: &mut AppOptions, keep
     separator_with_some_space(ui);
     ui.strong("Video");
     video_section_ui(ui, video);
+
+    separator_with_some_space(ui);
+    ui.strong("Interaction");
+    interact_section_ui(ui, interact_options);
 
     #[cfg(target_arch = "wasm32")]
     if experimental.use_viewer_catalog {
@@ -491,6 +496,62 @@ fn video_section_ui(ui: &mut Ui, options: &mut VideoOptions) {
             });
 
             ffmpeg_path_status_ui(ui, options);
+        }
+    }
+}
+
+fn interact_section_ui(ui: &mut Ui, interact_options: &mut InteractOptions) {
+    ui.horizontal(|ui| {
+        // TODO(ab): needed for alignment, we should use egui flex instead
+        ui.set_height(19.0);
+
+        ui.label("Websocket address:").on_hover_ui(|ui| {
+            ui.markdown_ui(
+                "This address is used to stream user interaction data to a remote server for \
+                processing. The receiver will receive user's interaction information.",
+            );
+        });
+
+        re_interact::state().update(interact_options).ok();
+
+        let connection_status = *interact_options.connection_status.lock();
+        let is_connecting =
+            connection_status != re_viewer_context::InteractConnectionStatus::Disconnected;
+
+        ui.scope(|ui| {
+            ui.add_enabled_ui(!is_connecting, |ui| {
+                ui.add(
+                    egui::TextEdit::singleline(&mut interact_options.address).hint_text("ws://"),
+                );
+            });
+        });
+
+        let button_text = if is_connecting {
+            "Disconnect"
+        } else {
+            "Connect"
+        };
+
+        if ui.button(button_text).clicked() {
+            if is_connecting {
+                *interact_options.connection_status.lock() =
+                    re_viewer_context::InteractConnectionStatus::Disconnected;
+            } else {
+                *interact_options.connection_status.lock() =
+                    re_viewer_context::InteractConnectionStatus::Connecting;
+            }
+        }
+    });
+
+    let address = &interact_options.address;
+    let connection_status = *interact_options.connection_status.lock();
+    match connection_status {
+        re_viewer_context::InteractConnectionStatus::Disconnected => {}
+        re_viewer_context::InteractConnectionStatus::Connecting => {
+            ui.loading_indicator(&format!("Connecting to {address}..."));
+        }
+        re_viewer_context::InteractConnectionStatus::Connected => {
+            ui.success_label(format!("Connected to {address}"));
         }
     }
 }

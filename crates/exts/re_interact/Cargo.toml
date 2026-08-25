@@ -1,0 +1,30 @@
+[package]
+name = "re_interact"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+include.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+
+# Rerun
+re_byte_size.workspace = true
+re_log.workspace = true
+re_log_types.workspace = true
+re_mutex.workspace = true
+re_viewer_context.workspace = true
+re_quota_channel.workspace = true
+
+# External
+ewebsock.workspace = true
+macaw.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+
+[lints]
+workspace = true

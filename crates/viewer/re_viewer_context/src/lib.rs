@@ -62,7 +62,9 @@ pub use self::annotations::{
     ResolvedAnnotationInfos,
 };
 pub use self::app_context::{AppContext, AuthContext};
-pub use self::app_options::{AppOptions, ExperimentalAppOptions, VideoOptions};
+pub use self::app_options::{
+    AppOptions, ExperimentalAppOptions, InteractConnectionStatus, InteractOptions, VideoOptions,
+};
 pub use self::blueprint_helpers::{
     AppBlueprintCtx, BlueprintContext, blueprint_timeline, blueprint_timepoint_for_writes,
 };

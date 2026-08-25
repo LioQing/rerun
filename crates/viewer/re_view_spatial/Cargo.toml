@@ -52,6 +52,8 @@ re_view.workspace = true
 re_viewer_context.workspace = true
 re_viewport_blueprint.workspace = true
 
+re_interact.workspace = true
+
 ahash.workspace = true
 anyhow.workspace = true
 arrow.workspace = true

@@ -1,6 +1,9 @@
+use std::sync::Arc;
+
 use re_entity_db::FetchStage;
 use re_log_types::TimestampFormat;
 use re_memory::MemoryLimit;
+use re_mutex::Mutex;
 use re_video::{DecodeHardwareAcceleration, DecodeSettings};
 
 const MAPBOX_ACCESS_TOKEN_ENV_VAR: &str = "RERUN_MAPBOX_ACCESS_TOKEN";
@@ -67,6 +70,9 @@ pub struct AppOptions {
     /// we prefetch data ahead of what is strictly needed.
     pub max_fetch_stage: FetchStage,
 
+    /// Options for the interaction feature.
+    pub interact_options: InteractOptions,
+
     /// Path to the directory suitable for storing cache data.
     ///
     /// By cache data, we mean data that is safe to be garbage collected by the OS. Defaults to
@@ -119,6 +125,8 @@ impl AppOptions {
             memory_limit: MemoryLimit::default_for_current_platform(),
 
             max_fetch_stage: FetchStage::default(),
+
+            interact_options: InteractOptions::default(),
 
             #[cfg(not(target_arch = "wasm32"))]
             cache_directory: Self::default_cache_directory(),
@@ -244,3 +252,41 @@ pub struct ExperimentalAppOptions {
     /// directly into the viewer as plain recordings.
     pub use_viewer_catalog: bool,
 }
+
+/// The connection status.
+#[derive(Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize, Clone, Copy)]
+pub enum InteractConnectionStatus {
+    /// Not connected to a websocket for interaction streaming.
+    #[default]
+    Disconnected,
+    /// Trying to connect to a websocket for interaction streaming.
+    Connecting,
+    /// Connected to a websocket for interaction streaming.
+    Connected,
+}
+
+/// Options for the interaction feature.
+#[derive(Debug, Default, serde::Deserialize, serde::Serialize, Clone)]
+#[serde(default)]
+pub struct InteractOptions {
+    /// Address of the websocket server to connect to for interaction streaming.
+    pub address: String,
+
+    /// The connection status of the interaction feature.
+    #[serde(skip, default)]
+    pub connection_status: Arc<Mutex<InteractConnectionStatus>>,
+}
+
+impl InteractOptions {
+    pub fn address_url(&self) -> Result<url::Url, url::ParseError> {
+        url::Url::parse(&self.address)
+    }
+}
+
+impl PartialEq for InteractOptions {
+    fn eq(&self, other: &Self) -> bool {
+        self.address == other.address
+    }
+}
+
+impl Eq for InteractOptions {}

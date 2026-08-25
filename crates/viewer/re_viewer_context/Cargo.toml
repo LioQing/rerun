@@ -82,6 +82,7 @@ smallvec.workspace = true
 static_assertions.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
+url.workspace = true
 uuid = { workspace = true, features = ["serde", "v4", "js"] }
 wgpu.workspace = true
 vec1.workspace = true
