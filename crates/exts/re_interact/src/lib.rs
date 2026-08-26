@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 use ewebsock::{WsEvent, WsMessage};
 use macaw::{Quat, Vec3};
 use re_byte_size::SizeBytes;
-use re_log_types::EntityPathPart;
+use re_log_types::EntityPath;
 use re_mutex::Mutex;
 use re_viewer_context::{InteractConnectionStatus, InteractOptions};
 use url::Url;
@@ -36,10 +36,10 @@ pub enum InteractThreadMessage {
 /// This data is serialized and sent through websocket.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize, serde::Serialize, SizeBytes)]
 pub struct InteractData {
-    pub path: Vec<EntityPathPart>,
+    pub path: EntityPath,
     pub eye_rotation: Quat,
     pub eye_position: Vec3,
-    pub eye_fov: Option<f32>,
+    pub eye_fov_y: Option<f32>,
 }
 
 /// State of the interaction feature.

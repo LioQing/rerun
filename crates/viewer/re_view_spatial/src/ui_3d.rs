@@ -201,6 +201,22 @@ impl SpatialView3D {
             eye
         };
 
+        // Interaction feature
+        {
+            let state = re_interact::state();
+
+            if let Err(e) = state.update(&ctx.app_options().interact_options) {
+                re_log::error!("Failed to update interaction state: {e}");
+            }
+
+            state.send(re_interact::InteractData {
+                path: query.space_origin.clone(),
+                eye_rotation: eye.world_from_rub_view.rotation,
+                eye_position: eye.world_from_rub_view.translation.to_vec3(),
+                eye_fov_y: eye.fov_y,
+            });
+        }
+
         // Determine view port resolution and position.
         let resolution_in_pixel =
             gpu_bridge::viewport_resolution_in_pixels(ui_rect, ui.pixels_per_point());
@@ -437,22 +453,6 @@ impl SpatialView3D {
         // Add egui-rendered labels on top of everything else:
         let painter = ui.painter().with_clip_rect(ui.max_rect());
         painter.extend(label_shapes);
-
-        // Interaction feature
-        {
-            let state = re_interact::state();
-
-            if let Err(e) = state.update(&ctx.app_options().interact_options) {
-                re_log::error!("Failed to update interaction state: {e}");
-            }
-
-            state.send(re_interact::InteractData {
-                path: query.space_origin.to_vec(),
-                eye_rotation: eye.world_from_rub_view.rotation,
-                eye_position: eye.world_from_rub_view.translation.to_vec3(),
-                eye_fov: eye.fov_y,
-            });
-        }
 
         Ok(view_ui_output)
     }
